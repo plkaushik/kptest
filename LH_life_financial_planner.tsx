@@ -1,427 +1,17 @@
-  // Scenario Results View
-  if (step === 'scenario_results' && analysisResults) {
-    const { scenario, results } = analysisResults;
-    const enhancedMetrics = calculateEnhancedMetrics(results, scenario);
-    const finalYear = results[results.length - 1];
-    const peakNetWorth = results.reduce((max, year) => year.netWorth > max.netWorth ? year : max);
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <button 
-                onClick={() => setStep('scenario_list')}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">{scenario.name}</h1>
-                <p className="text-gray-600">Comprehensive financial analysis over {results.length} years</p>
-              </div>
-            </div>
-
-            {/* Enhanced Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-lg">
-                <h4 className="text-sm font-medium opacity-90">Net Worth at {finalYear.age}</h4>
-                <p className="text-2xl font-bold">${finalYear.netWorth.toLocaleString()}</p>
-              </div>
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-6 rounded-lg">
-                <h4 className="text-sm font-medium opacity-90">Retirement Readiness</h4>
-                <p className="text-2xl font-bold">Grade {enhancedMetrics.retirementReadiness.grade}</p>
-                <p className="text-xs opacity-75">{enhancedMetrics.retirementReadiness.readinessPercent}% of goal</p>
-              </div>
-              <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-lg">
-                <h4 className="text-sm font-medium opacity-90">Avg Savings Rate</h4>
-                <p className="text-2xl font-bold">{enhancedMetrics.retirementReadiness.avgSavingsRate}%</p>
-              </div>
-              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-lg">
-                <h4 className="text-sm font-medium opacity-90">Emergency Fund</h4>
-                <p className="text-2xl font-bold">{enhancedMetrics.retirementReadiness.monthsEmergencyFund} mos</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Cash Flow Analysis */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Cash Flow Analysis</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={enhancedMetrics.cashFlowAnalysis}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    if (name === 'income') return [`${value?.toLocaleString()}`, 'Annual Income'];
-                    if (name === 'expenses') return [`${value?.toLocaleString()}`, 'Annual Expenses'];
-                    return [`${value?.toLocaleString()}`, name];
-                  }}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="income" 
-                  stackId="1"
-                  stroke="#10b981" 
-                  fill="#10b981"
-                  fillOpacity={0.6}
-                  name="income"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="expenses" 
-                  stackId="2"
-                  stroke="#ef4444" 
-                  fill="#ef4444"
-                  fillOpacity={0.6}
-                  name="expenses"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="annualCashFlow" 
-                  stroke="#2563eb" 
-                  strokeWidth={2}
-                  dot={false}
-                  name="Net Cash Flow"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Annual Income</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span>Annual Expenses</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Emergency Fund Status */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Emergency Fund Coverage</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={enhancedMetrics.emergencyFundStatus}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis domain={[0, 24]} label={{ value: 'Months', angle: -90, position: 'insideLeft' }} />
-                <Tooltip 
-                  formatter={(value, name) => [
-                    `${value} months`, 
-                    name === 'monthsCovered' ? 'Emergency Fund Coverage' : name
-                  ]}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="monthsCovered" 
-                  stroke="#8b5cf6" 
-                  fill="#8b5cf6"
-                  fillOpacity={0.6}
-                  name="monthsCovered"
-                />
-                {/* Reference line at 6 months */}
-                <Line 
-                  type="monotone" 
-                  dataKey={() => 6} 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  name="Recommended (6 months)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>Shows months of expenses covered by your net worth. Recommended: 6+ months for financial security.</p>
-            </div>
-          </div>
-
-          {/* Expense Ratios */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Expense Ratios (% of Income)</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={enhancedMetrics.expenseRatios}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis domain={[0, 100]} label={{ value: 'Percentage', angle: -90, position: 'insideLeft' }} />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    const nameMap = {
-                      housingRatio: 'Housing',
-                      livingRatio: 'Living Expenses', 
-                      savingsRatio: 'Savings Rate'
-                    };
-                    return [`${value}%`, nameMap[name] || name];
-                  }}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="housingRatio" 
-                  stackId="1"
-                  stroke="#3b82f6" 
-                  fill="#3b82f6"
-                  fillOpacity={0.8}
-                  name="housingRatio"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="livingRatio" 
-                  stackId="1"
-                  stroke="#10b981" 
-                  fill="#10b981"
-                  fillOpacity={0.8}
-                  name="livingRatio"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="savingsRatio" 
-                  stroke="#8b5cf6" 
-                  fill="#8b5cf6"
-                  fillOpacity={0.6}
-                  name="savingsRatio"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span>Housing (Goal: &lt;30%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Living Expenses</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-500 rounded"></div>
-                <span>Savings Rate (Goal: &gt;20%)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Net Worth Chart */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Net Worth Progression</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={results}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" />
-                <YAxis tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
-                <Tooltip 
-                  formatter={(value, name) => [`${value?.toLocaleString()}`, name]}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="netWorth" 
-                  stroke="#2563eb" 
-                  strokeWidth={3}
-                  name="Net Worth"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="flex justify-between">
-              <button
-                onClick={() => setStep('scenario_list')}
-                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Back to Scenarios
-              </button>
-              <button
-                onClick={() => editScenario(scenario)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Edit3 className="h-4 w-4" />
-                Edit Scenario
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Scenario Comparison View
-  if (step === 'scenario_comparison' && selectedScenariosForComparison.length >= 2) {
-    const colors = ['#2563eb', '#dc2626', '#059669', '#7c3aed', '#ea580c'];
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <button 
-                onClick={() => setStep('scenario_list')}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Scenario Comparison</h1>
-                <p className="text-gray-600">Comparing {selectedScenariosForComparison.length} scenarios</p>
-              </div>
-            </div>
-
-            {/* Comparison Summary Table */}
-            <div className="overflow-x-auto mb-8">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Metric</th>
-                    {selectedScenariosForComparison.map((comp, index) => (
-                      <th key={comp.scenario.id} className="text-left py-3 px-4 font-medium" style={{color: colors[index]}}>
-                        {comp.scenario.name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    {
-                      label: 'Final Net Worth',
-                      getValue: (results) => `${results[results.length - 1].netWorth.toLocaleString()}`
-                    },
-                    {
-                      label: 'Retirement Grade',
-                      getValue: (results, scenario) => {
-                        const metrics = calculateEnhancedMetrics(results, scenario);
-                        return `${metrics.retirementReadiness.grade} (${metrics.retirementReadiness.readinessPercent}%)`;
-                      }
-                    },
-                    {
-                      label: 'Avg Savings Rate',
-                      getValue: (results, scenario) => {
-                        const metrics = calculateEnhancedMetrics(results, scenario);
-                        return `${metrics.retirementReadiness.avgSavingsRate}%`;
-                      }
-                    },
-                    {
-                      label: 'Peak Net Worth',
-                      getValue: (results) => {
-                        const peak = results.reduce((max, year) => year.netWorth > max.netWorth ? year : max);
-                        return `${peak.netWorth.toLocaleString()} (age ${peak.age})`;
-                      }
-                    }
-                  ].map((metric, metricIndex) => (
-                    <tr key={metricIndex} className="border-b border-gray-100">
-                      <td className="py-3 px-4 font-medium text-gray-700">{metric.label}</td>
-                      {selectedScenariosForComparison.map((comp, index) => (
-                        <td key={comp.scenario.id} className="py-3 px-4" style={{color: colors[index]}}>
-                          {metric.getValue(comp.results, comp.scenario)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Net Worth Comparison Chart */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Net Worth Comparison</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  type="number"
-                  dataKey="age" 
-                  domain={['dataMin', 'dataMax']}
-                />
-                <YAxis tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
-                <Tooltip 
-                  formatter={(value, name) => [`${value?.toLocaleString()}`, name]}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                {selectedScenariosForComparison.map((comp, index) => (
-                  <Line 
-                    key={comp.scenario.id}
-                    type="monotone" 
-                    dataKey="netWorth"
-                    data={comp.results}
-                    stroke={colors[index]}
-                    strokeWidth={3}
-                    name={comp.scenario.name}
-                    connectNulls={false}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-            <div className="mt-4 flex flex-wrap gap-4">
-              {selectedScenariosForComparison.map((comp, index) => (
-                <div key={comp.scenario.id} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded" style={{backgroundColor: colors[index]}}></div>
-                  <span className="text-sm">{comp.scenario.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Cash Flow Comparison */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Annual Savings Comparison</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  type="number"
-                  dataKey="age" 
-                  domain={['dataMin', 'dataMax']}
-                />
-                <YAxis tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
-                <Tooltip 
-                  formatter={(value, name) => [`${value?.toLocaleString()}`, name]}
-                  labelFormatter={(age) => `Age ${age}`}
-                />
-                {selectedScenariosForComparison.map((comp, index) => (
-                  <Line 
-                    key={comp.scenario.id}
-                    type="monotone" 
-                    dataKey="savings"
-                    data={comp.results}
-                    stroke={colors[index]}
-                    strokeWidth={2}
-                    name={comp.scenario.name}
-                    connectNulls={false}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="flex justify-between">
-              <button
-                onClick={() => setStep('scenario_list')}
-                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Back to Scenarios
-              </button>
-              <button
-                onClick={() => setSelectedScenariosForComparison([])}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Clear Selection
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }import React, { useState, useMemo } from 'react';
-import { User, ArrowRight, CheckCircle, Plus, Edit3, Trash2, DollarSign, Home, Heart, TrendingUp, Save, BarChart3, ArrowLeft, FileText, Info } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { User, ArrowRight, CheckCircle, Plus, Edit3, Trash2, DollarSign, Home, Heart, TrendingUp, Save, BarChart3, ArrowLeft, FileText, Info, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
+import { useAuth } from './auth.js';
+import { LoginForm, SignupForm } from './AuthComponents.jsx';
 
 const LifeFinancialPlanner = () => {
+  // Authentication state
+  const { user, loading: authLoading, login, signup, logout, updateUserProfile, updateUserScenarios, isAuthenticated } = useAuth();
+  const [authStep, setAuthStep] = useState('login'); // 'login' or 'signup'
+  const [authError, setAuthError] = useState('');
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  // App state
   const [step, setStep] = useState('profile_setup'); // 'profile_setup', 'scenario_list', 'scenario_create', 'scenario_results', 'methodology', 'scenario_comparison'
   const [basicProfile, setBasicProfile] = useState({
     name: '',
@@ -471,6 +61,70 @@ const LifeFinancialPlanner = () => {
     { value: 'prefer_not_to_say', label: 'Prefer not to say' }
   ];
 
+  // Authentication handlers
+  const handleLogin = async (email, password) => {
+    setIsAuthLoading(true);
+    setAuthError('');
+    const result = await login(email, password);
+    if (!result.success) {
+      setAuthError(result.error);
+    }
+    setIsAuthLoading(false);
+  };
+
+  const handleSignup = async (email, password, name) => {
+    setIsAuthLoading(true);
+    setAuthError('');
+    const result = await signup(email, password, name);
+    if (!result.success) {
+      setAuthError(result.error);
+    } else {
+      // After successful signup, load user's existing profile if any
+      if (result.user && result.user.profile && result.user.profile.name) {
+        setBasicProfile(result.user.profile);
+        setScenarios(result.user.scenarios || []);
+        setStep('scenario_list');
+      }
+    }
+    setIsAuthLoading(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setBasicProfile({ name: '', age: '', gender: '', lifeStage: '' });
+    setScenarios([]);
+    setStep('profile_setup');
+    setAuthStep('login');
+    setAuthError('');
+  };
+
+  // Load user data when authenticated
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      if (user.profile && user.profile.name) {
+        setBasicProfile(user.profile);
+        setScenarios(user.scenarios || []);
+        setStep('scenario_list');
+      } else {
+        setStep('profile_setup');
+      }
+    }
+  }, [user, isAuthenticated]);
+
+  // Listen for auth form switching
+  useEffect(() => {
+    const handleSwitchToSignup = () => setAuthStep('signup');
+    const handleSwitchToLogin = () => setAuthStep('login');
+    
+    window.addEventListener('switchToSignup', handleSwitchToSignup);
+    window.addEventListener('switchToLogin', handleSwitchToLogin);
+    
+    return () => {
+      window.removeEventListener('switchToSignup', handleSwitchToSignup);
+      window.removeEventListener('switchToLogin', handleSwitchToLogin);
+    };
+  }, []);
+
   const handleProfileUpdate = (field, value) => {
     setBasicProfile(prev => ({
       ...prev,
@@ -485,9 +139,11 @@ const LifeFinancialPlanner = () => {
     }));
   };
 
-  // Fixed: Use React state instead of localStorage
+  // Save profile and update user data
   const saveBasicProfile = () => {
-    // Store in React state - localStorage not supported in Claude artifacts
+    if (isAuthenticated && user) {
+      updateUserProfile(basicProfile);
+    }
     setStep('scenario_list');
   };
 
@@ -503,7 +159,12 @@ const LifeFinancialPlanner = () => {
       : [...scenarios, scenarioToSave];
     
     setScenarios(updatedScenarios);
-    // Removed localStorage - not supported in Claude artifacts
+    
+    // Update user's scenarios in auth system
+    if (isAuthenticated && user) {
+      updateUserScenarios(updatedScenarios);
+    }
+    
     setStep('scenario_list');
   };
 
@@ -540,7 +201,11 @@ const LifeFinancialPlanner = () => {
   const deleteScenario = (scenarioId) => {
     const updatedScenarios = scenarios.filter(s => s.id !== scenarioId);
     setScenarios(updatedScenarios);
-    // Removed localStorage - not supported in Claude artifacts
+    
+    // Update user's scenarios in auth system
+    if (isAuthenticated && user) {
+      updateUserScenarios(updatedScenarios);
+    }
   };
 
   const runAnalysis = (scenario) => {
@@ -562,10 +227,10 @@ const LifeFinancialPlanner = () => {
   // Calculate additional metrics for enhanced analysis
   const calculateEnhancedMetrics = (results, scenario) => {
     const metrics = {
-      cashFlowAnalysis: [],
-      emergencyFundStatus: [],
-      expenseRatios: [],
-      retirementReadiness: {}
+      cashFlowAnalysis: [] as any[],
+      emergencyFundStatus: [] as any[],
+      expenseRatios: [] as any[],
+      retirementReadiness: {} as any
     };
 
     results.forEach((year, index) => {
@@ -650,7 +315,7 @@ const LifeFinancialPlanner = () => {
       high: { housing: 1.8, salary: 1.3, living: 1.3 }
     };
     
-    const projection = [];
+    const projection: any[] = [];
     const regionData = locationMultipliers[scenario.locationCost];
     
     let currentAge = parseInt(profile.age);
@@ -728,6 +393,35 @@ const LifeFinancialPlanner = () => {
   const isScenarioComplete = () => {
     return currentScenario.name.trim() !== '';
   };
+
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication forms if not logged in
+  if (!isAuthenticated) {
+    return authStep === 'login' ? (
+      <LoginForm 
+        onLogin={handleLogin} 
+        loading={isAuthLoading} 
+        error={authError} 
+      />
+    ) : (
+      <SignupForm 
+        onSignup={handleSignup} 
+        loading={isAuthLoading} 
+        error={authError} 
+      />
+    );
+  }
 
   // Profile Setup Component
   if (step === 'profile_setup') {
@@ -872,13 +566,22 @@ const LifeFinancialPlanner = () => {
                   Manage your financial scenarios and explore different life paths
                 </p>
               </div>
-              <button
-                onClick={createNewScenario}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-                New Scenario
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+                <button
+                  onClick={createNewScenario}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  New Scenario
+                </button>
+              </div>
             </div>
 
             {scenarios.length === 0 ? (
@@ -1215,195 +918,16 @@ const LifeFinancialPlanner = () => {
     );
   }
 
-  // Methodology View
-  if (step === 'methodology') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="flex items-center gap-3 mb-8">
-              <button 
-                onClick={() => setStep('scenario_create')}
-                className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-800">Financial Methodology</h1>
-                <p className="text-gray-600">Understanding how your financial projections are calculated</p>
-              </div>
-              <button
-                onClick={() => {
-                  const methodologyContent = document.getElementById('methodology-content');
-                  const blob = new Blob([methodologyContent.innerText], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'financial-methodology.txt';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                Download
-              </button>
-            </div>
-
-            <div id="methodology-content" className="prose max-w-none space-y-6">
-              <div className="bg-blue-50 p-6 rounded-lg">
-                <h2 className="text-xl font-semibold text-gray-800 mb-3">Overview</h2>
-                <p className="text-gray-700">
-                  This financial planner uses a comprehensive model to project your net worth over 45 years, 
-                  accounting for income growth, expenses, major life events, and investment returns.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-green-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    Income Variables
-                  </h3>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li><strong>Current Annual Income:</strong> Your gross yearly salary before taxes</li>
-                    <li><strong>Salary Growth Rate:</strong> Annual percentage increase (typical: 2-5%)</li>
-                    <li><strong>Partner Income:</strong> Additional household income if married/partnered</li>
-                    <li><strong>Location Multiplier:</strong> Adjusts salary based on cost of living</li>
-                  </ul>
-                </div>
-
-                <div className="bg-red-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Expense Variables</h3>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li><strong>Monthly Living Expenses:</strong> Food, utilities, transportation, entertainment</li>
-                    <li><strong>Housing Costs:</strong> Rent or mortgage + property taxes + insurance</li>
-                    <li><strong>Child Expenses:</strong> $12,000/year per child (childcare, education, etc.)</li>
-                    <li><strong>Inflation Rate:</strong> 2.5% annual increase in expenses</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <Home className="h-5 w-5 text-purple-600" />
-                  Housing Calculations
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <h4 className="font-medium mb-2">Renting:</h4>
-                    <ul className="space-y-1">
-                      <li>• Monthly rent × location multiplier</li>
-                      <li>• Increases with inflation annually</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Home Purchase:</h4>
-                    <ul className="space-y-1">
-                      <li>• Down payment reduces net worth initially</li>
-                      <li>• Monthly payment = (Price - Down) × 0.55% (includes mortgage, taxes, insurance)</li>
-                      <li>• Assumes 5.5% interest rate + property costs</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-yellow-600" />
-                  Investment & Growth Assumptions
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li><strong>Investment Return:</strong> 7% annual return on positive net worth</li>
-                  <li><strong>Savings Rate:</strong> Income - Expenses = Annual Savings (if positive)</li>
-                  <li><strong>Compound Growth:</strong> Returns reinvested annually</li>
-                  <li><strong>No Debt Interest:</strong> Assumes debt is paid down without interest calculation</li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Location Cost Multipliers</h3>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <h4 className="font-medium text-green-700">Low Cost Area</h4>
-                    <ul className="text-gray-600">
-                      <li>Housing: 70%</li>
-                      <li>Salary: 90%</li>
-                      <li>Living: 80%</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-blue-700">Average Cost Area</h4>
-                    <ul className="text-gray-600">
-                      <li>Housing: 100%</li>
-                      <li>Salary: 100%</li>
-                      <li>Living: 100%</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-red-700">High Cost Area</h4>
-                    <ul className="text-gray-600">
-                      <li>Housing: 180%</li>
-                      <li>Salary: 130%</li>
-                      <li>Living: 130%</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-orange-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Life Event Modeling</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li><strong>Marriage/Partnership:</strong> Combines incomes and expenses</li>
-                  <li><strong>Children:</strong> Added every 2 years starting at specified age</li>
-                  <li><strong>Home Purchase:</strong> Occurs after specified waiting period</li>
-                  <li><strong>Career Progression:</strong> Income grows annually by specified rate</li>
-                </ul>
-              </div>
-
-              <div className="bg-red-100 border border-red-200 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-red-800 mb-3">Important Disclaimers</h3>
-                <ul className="space-y-2 text-sm text-red-700">
-                  <li>• These projections are estimates based on assumptions and should not be considered financial advice</li>
-                  <li>• Actual market returns vary significantly and can include negative years</li>
-                  <li>• Tax implications are not included in calculations</li>
-                  <li>• Emergency expenses and major life changes are not modeled</li>
-                  <li>• Consult with a qualified financial advisor for personalized guidance</li>
-                </ul>
-              </div>
-
-              <div className="text-center pt-6 border-t">
-                <p className="text-sm text-gray-500">
-                  This methodology is designed to provide general projections for planning purposes only.
-                  <br />
-                  Generated by Life Financial Planner - {new Date().toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 flex justify-center">
-              <button
-                onClick={() => setStep('scenario_create')}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Back to Scenario Creation
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Scenario Results View
   if (step === 'scenario_results' && analysisResults) {
     const { scenario, results } = analysisResults;
+    const enhancedMetrics = calculateEnhancedMetrics(results, scenario);
     const finalYear = results[results.length - 1];
     const peakNetWorth = results.reduce((max, year) => year.netWorth > max.netWorth ? year : max);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto space-y-6">
           <div className="bg-white rounded-xl shadow-xl p-8">
             <div className="flex items-center gap-3 mb-8">
               <button 
@@ -1414,47 +938,57 @@ const LifeFinancialPlanner = () => {
               </button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">{scenario.name}</h1>
-                <p className="text-gray-600">Financial projection over {results.length} years</p>
+                <p className="text-gray-600">Comprehensive financial analysis over {results.length} years</p>
               </div>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
+            {/* Enhanced Summary Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-lg">
                 <h4 className="text-sm font-medium opacity-90">Net Worth at {finalYear.age}</h4>
-                <p className="text-3xl font-bold">${finalYear.netWorth.toLocaleString()}</p>
+                <p className="text-2xl font-bold">${finalYear.netWorth.toLocaleString()}</p>
               </div>
               <div className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-6 rounded-lg">
-                <h4 className="text-sm font-medium opacity-90">Peak Net Worth</h4>
-                <p className="text-3xl font-bold">${peakNetWorth.netWorth.toLocaleString()}</p>
-                <p className="text-xs opacity-75">at age {peakNetWorth.age}</p>
+                <h4 className="text-sm font-medium opacity-90">Retirement Readiness</h4>
+                <p className="text-2xl font-bold">Grade {enhancedMetrics.retirementReadiness.grade}</p>
+                <p className="text-xs opacity-75">{enhancedMetrics.retirementReadiness.readinessPercent}% of goal</p>
+              </div>
+              <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6 rounded-lg">
+                <h4 className="text-sm font-medium opacity-90">Avg Savings Rate</h4>
+                <p className="text-2xl font-bold">{enhancedMetrics.retirementReadiness.avgSavingsRate}%</p>
+              </div>
+              <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-lg">
+                <h4 className="text-sm font-medium opacity-90">Emergency Fund</h4>
+                <p className="text-2xl font-bold">{enhancedMetrics.retirementReadiness.monthsEmergencyFund} mos</p>
               </div>
             </div>
+          </div>
 
-            {/* Net Worth Chart */}
-            <div className="bg-white border rounded-lg p-6 mb-8">
-              <h3 className="font-semibold text-gray-800 mb-4">Net Worth Over Time</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={results}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="age" />
-                  <YAxis tickFormatter={(value) => `$${(value/1000).toFixed(0)}k`} />
-                  <Tooltip 
-                    formatter={(value, name) => [`$${value?.toLocaleString()}`, name]}
-                    labelFormatter={(age) => `Age ${age}`}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="netWorth" 
-                    stroke="#2563eb" 
-                    strokeWidth={3}
-                    name="Net Worth"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+          {/* Net Worth Chart */}
+          <div className="bg-white rounded-xl shadow-xl p-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Net Worth Progression</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={results}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="age" />
+                <YAxis tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
+                <Tooltip 
+                  formatter={(value, name) => [`${value?.toLocaleString()}`, name]}
+                  labelFormatter={(age) => `Age ${age}`}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="netWorth" 
+                  stroke="#2563eb" 
+                  strokeWidth={3}
+                  name="Net Worth"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
 
-            {/* Fixed: Completed the incomplete return statement */}
+          {/* Action Buttons */}
+          <div className="bg-white rounded-xl shadow-xl p-8">
             <div className="flex justify-between">
               <button
                 onClick={() => setStep('scenario_list')}
