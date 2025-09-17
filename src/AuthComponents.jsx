@@ -10,12 +10,14 @@ export const LoginForm = ({ onLogin, loading, error }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
+      setShowValidationErrors(false);
     }
   };
 
@@ -25,16 +27,36 @@ export const LoginForm = ({ onLogin, loading, error }) => {
     const validation = validateLoginForm(formData.email, formData.password);
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
+      setShowValidationErrors(true);
       return;
     }
 
     setValidationErrors({});
+    setShowValidationErrors(false);
     await onLogin(formData.email, formData.password);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8">
+        {/* Validation Error Banner */}
+        {showValidationErrors && Object.keys(validationErrors).length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+            </div>
+            <ul className="text-sm text-red-700 space-y-1">
+              {Object.entries(validationErrors).map(([field, error]) => (
+                <li key={field} className="flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="bg-blue-100 p-3 rounded-full">
@@ -163,12 +185,14 @@ export const SignupForm = ({ onSignup, loading, error }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
+      setShowValidationErrors(false);
     }
   };
 
@@ -184,16 +208,36 @@ export const SignupForm = ({ onSignup, loading, error }) => {
     
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
+      setShowValidationErrors(true);
       return;
     }
 
     setValidationErrors({});
+    setShowValidationErrors(false);
     await onSignup(formData.email, formData.password, formData.name);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-6">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-8">
+        {/* Validation Error Banner */}
+        {showValidationErrors && Object.keys(validationErrors).length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+            </div>
+            <ul className="text-sm text-red-700 space-y-1">
+              {Object.entries(validationErrors).map(([field, error]) => (
+                <li key={field} className="flex items-center gap-2">
+                  <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="bg-purple-100 p-3 rounded-full">
@@ -354,3 +398,4 @@ export const SignupForm = ({ onSignup, loading, error }) => {
     </div>
   );
 };
+

@@ -354,3 +354,4 @@ export const SignupForm = ({ onSignup, loading, error }) => {
     </div>
   );
 };
+

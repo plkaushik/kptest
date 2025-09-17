@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { User, ArrowRight, CheckCircle, Plus, Edit3, Trash2, DollarSign, Home, Heart, TrendingUp, Save, BarChart3, ArrowLeft, FileText, Info, LogOut } from 'lucide-react';
+import { User, ArrowRight, CheckCircle, Plus, Edit3, Trash2, DollarSign, Home, Heart, TrendingUp, Save, BarChart3, ArrowLeft, FileText, Info, LogOut, AlertCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { useAuth } from './auth.js';
 import { LoginForm, SignupForm } from './AuthComponents.jsx';
@@ -43,6 +43,10 @@ const LifeFinancialPlanner = () => {
   });
   const [analysisResults, setAnalysisResults] = useState(null);
   const [selectedScenariosForComparison, setSelectedScenariosForComparison] = useState([]);
+  const [profileValidationErrors, setProfileValidationErrors] = useState({});
+  const [showProfileValidationErrors, setShowProfileValidationErrors] = useState(false);
+  const [scenarioValidationErrors, setScenarioValidationErrors] = useState({});
+  const [showScenarioValidationErrors, setShowScenarioValidationErrors] = useState(false);
 
   const lifeStageOptions = [
     { value: 'high_school', label: 'High School Student', desc: 'Planning for college' },
@@ -130,6 +134,11 @@ const LifeFinancialPlanner = () => {
       ...prev,
       [field]: value
     }));
+    // Clear validation error when user starts typing
+    if (profileValidationErrors[field]) {
+      setProfileValidationErrors(prev => ({ ...prev, [field]: '' }));
+      setShowProfileValidationErrors(false);
+    }
   };
 
   const handleScenarioUpdate = (field, value) => {
@@ -137,10 +146,39 @@ const LifeFinancialPlanner = () => {
       ...prev,
       [field]: value
     }));
+    // Clear validation error when user starts typing
+    if (scenarioValidationErrors[field]) {
+      setScenarioValidationErrors(prev => ({ ...prev, [field]: '' }));
+      setShowScenarioValidationErrors(false);
+    }
   };
 
   // Save profile and update user data
   const saveBasicProfile = () => {
+    // Validate required fields
+    const errors = {};
+    if (!basicProfile.name.trim()) {
+      errors.name = 'Name is required';
+    }
+    if (!basicProfile.age) {
+      errors.age = 'Age is required';
+    }
+    if (!basicProfile.gender) {
+      errors.gender = 'Gender selection is required';
+    }
+    if (!basicProfile.lifeStage) {
+      errors.lifeStage = 'Life stage selection is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setProfileValidationErrors(errors);
+      setShowProfileValidationErrors(true);
+      return;
+    }
+
+    setProfileValidationErrors({});
+    setShowProfileValidationErrors(false);
+    
     if (isAuthenticated && user) {
       updateUserProfile(basicProfile);
     }
@@ -148,6 +186,21 @@ const LifeFinancialPlanner = () => {
   };
 
   const saveScenario = () => {
+    // Validate required fields
+    const errors = {};
+    if (!currentScenario.name.trim()) {
+      errors.name = 'Scenario name is required';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setScenarioValidationErrors(errors);
+      setShowScenarioValidationErrors(true);
+      return;
+    }
+
+    setScenarioValidationErrors({});
+    setShowScenarioValidationErrors(false);
+
     const scenarioToSave = {
       ...currentScenario,
       id: currentScenario.id || Date.now().toString(),
@@ -428,6 +481,24 @@ const LifeFinancialPlanner = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
         <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-8">
+          {/* Validation Error Banner */}
+          {showProfileValidationErrors && Object.keys(profileValidationErrors).length > 0 && (
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                <h3 className="text-sm font-medium text-red-800">Please complete all required fields:</h3>
+              </div>
+              <ul className="text-sm text-red-700 space-y-1">
+                {Object.entries(profileValidationErrors).map(([field, error]) => (
+                  <li key={field} className="flex items-center gap-2">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {error}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="bg-blue-100 p-3 rounded-full">
@@ -746,6 +817,24 @@ const LifeFinancialPlanner = () => {
                 <p className="text-gray-600">Define your financial situation and goals</p>
               </div>
             </div>
+
+            {/* Validation Error Banner */}
+            {showScenarioValidationErrors && Object.keys(scenarioValidationErrors).length > 0 && (
+              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                </div>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {Object.entries(scenarioValidationErrors).map(([field, error]) => (
+                    <li key={field} className="flex items-center gap-2">
+                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                      {error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="space-y-8">
               {/* Basic Info */}

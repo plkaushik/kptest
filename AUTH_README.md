@@ -84,3 +84,4 @@ In a production environment, you would want to:
 8. Add audit logging for security
 
 The current implementation provides a solid foundation for a production authentication system while maintaining the existing functionality of the financial planner.
+

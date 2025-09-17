@@ -206,3 +206,4 @@ export const validateSignupForm = (email, password, confirmPassword, name) => {
     errors
   };
 };
+
